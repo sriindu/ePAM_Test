@@ -203,6 +203,17 @@
         ]
          }
       },
+       "DBSubnet" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+           "sriVPCId" : { "Ref" : "srisriVPC" },
+           "CidrBlock" : "10.0.3.0/24",
+           "AvailabilityZone" : "us-east-1c",
+          "Tags" : [
+          {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} },
+          {"Key" : "Network", "Value" : "Private" }
+        ]
+         }
 
     "PrivateRouteTable" : {
       "Type" : "AWS::EC2::RouteTable",
