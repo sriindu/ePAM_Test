@@ -196,14 +196,25 @@
         "Properties" : {
            "sriVPCId" : { "Ref" : "srisriVPC" },
            "CidrBlock" : "10.0.2.0/24",
-           "AvailabilityZone" : "us-east-1a",
+           "AvailabilityZone" : "us-east-1b",
           "Tags" : [
           {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} },
           {"Key" : "Network", "Value" : "Private" }
         ]
          }
       },
-
+   "DBSubnet" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+           "sriVPCId" : { "Ref" : "srisriVPC" },
+           "CidrBlock" : "10.0.3.0/24",
+           "AvailabilityZone" : "us-east-1c",
+          "Tags" : [
+          {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} },
+          {"Key" : "Network", "Value" : "Private" }
+        ]
+         }
+      },
     "PrivateRouteTable" : {
       "Type" : "AWS::EC2::RouteTable",
       "Properties" : {
@@ -326,6 +337,67 @@
         "GroupDescription" : "Enable HTTP access on the configured port",
         "sriVPCId" : { "Ref" : "sriVPC" },
         "SecurityGroupIngress" : [ { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "SourceSecurityGroupId" : { "Ref" : "pubELBSG" } } ]
+      }
+    }
+  },
+      "privELB" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "SecurityGroups" : [ { "Ref" : "privELBSG" } ],
+        "Subnets" : [ { "Ref" : "pubSubnet" } ],
+        "Listeners" : [ { "LoadBalancerPort" : "80", "InstancePort" : "80", "Protocol" : "HTTP" } ],
+        "HealthCheck" : {
+          "Target" : "HTTP:80/",
+          "HealthyThreshold" : "3",
+          "UnhealthyThreshold" : "5",
+          "Interval" : "90",
+          "Timeout" : "60"
+        }
+      }
+    },
+
+    "privELBSG" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access on port 80",
+        "sriVPCId" : { "Ref" : "sriVPC" },
+        "SecurityGroupIngress" : [ { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0" } ],
+        "SecurityGroupEgress" : [ { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"} ]
+      }
+    },
+
+    "AppServerGroup" : {
+      "Type" : "AWS::AutoScaling::AutoScalingGroup",
+      "Properties" : {
+        "AvailabilityZones" : [{ "Fn::GetAtt" : [ "privSubnet", "AvailabilityZone" ] }],
+        "VPCZoneIdentifier" : [{ "Ref" : "privSubnet" }],
+        "LaunchConfigurationName" : { "Ref" : "LaunchConfig" },
+        "MinSize" : "1",
+        "MaxSize" : "10",
+        "DesiredCapacity" : { "Ref" : "InstanceCount" },
+        "LoadBalancerNames" : [ { "Ref" : "privELB" } ],
+        "Tags" : [ {"Key" : "Network", "Value" : "Public", "PropagateAtLaunch" : "true" } ]
+      }
+    },
+
+    "LaunchConfig" : {
+      "Type" : "AWS::AutoScaling::LaunchConfiguration",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" },
+                                          "Arch" ] } ] },
+        "UserData" : { "Fn::Base64" : "80" },
+        "SecurityGroups" : [ { "Ref" : "privEC2SecurityGroup" } ],
+        "InstanceType" : { "Ref" : "InstanceType" }
+      }
+    },
+
+    "privEC2SecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access on the configured port",
+        "sriVPCId" : { "Ref" : "sriVPC" },
+        "SecurityGroupIngress" : [ { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "SourceSecurityGroupId" : { "Ref" : "privELBSG" } } ]
       }
     }
   },
