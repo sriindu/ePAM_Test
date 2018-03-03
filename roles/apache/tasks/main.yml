@@ -1,0 +1,6 @@
+- copy:
+    src: apache.bash
+    dest: /tmp
+    owner: httpd
+    group: httpd
+    mode: 0644
