@@ -1,0 +1,110 @@
+
+{
+   "AWSTemplateFormatVersion" : "2010-09-09",
+   "Resources" : {
+      "sriVPC" : {
+         "Type" : "AWS::EC2::VPC",
+         "Properties" : {
+            "CidrBlock" : "10.0.0.0/16",
+    	    "EnableDnsSupport" : "false",
+    	    "EnableDnsHostnames" : "false",
+            "InstanceTenancy" : "dedicated",
+            "Tags" : [ {"Key" : "foo", "Value" : "bar"} ]
+         }
+      },
+      "pubSubnet" : {
+         "Type" : "AWS::EC2::Subnet",
+         "Properties" : {
+            "VpcId" : { "Ref" : "sriVPC" },
+            "CidrBlock" : "10.0.1.0/24",
+            "AvailabilityZone" : "us-east-1a",
+            "Tags" : [ { "Key" : "foo", "Value" : "bar" } ]
+         }
+      },
+	  "privSubnet" : {
+         "Type" : "AWS::EC2::Subnet",
+         "Properties" : {
+            "VpcId" : { "Ref" : "sriVPC" },
+            "CidrBlock" : "10.0.2.0/24",
+            "AvailabilityZone" : "us-east-1a",
+            "Tags" : [ { "Key" : "foo", "Value" : "bar" } ]
+         }
+      },
+	  "WebServer1": {
+      "Type": "AWS::EC2::Instance",  
+      "Properties": {
+        "Tags" : [
+            { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } }
+        ],
+        "ImageId"            : "ami-123456789",
+        "InstanceType"       : "m1.small",
+        "IamInstanceProfile" : { "Ref" : "InstanceProfile" },
+        "KeyName"            : "Secure",
+        "NetworkInterfaces" : [{
+          "AssociatePublicIpAddress" : "true",
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId" : { "Ref" : "pubSubnet" },
+          "GroupSet"                 : [ "sg-a1b2c3d4" ]
+        }]
+      }
+    },
+      "WebServer2": {
+      "Type": "AWS::EC2::Instance",  
+      "Properties": {
+        "Tags" : [
+            { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } }
+        ],
+        "ImageId"            : "ami-123456789",
+        "InstanceType"       : "m1.small",
+        "IamInstanceProfile" : { "Ref" : "InstanceProfile" },
+        "KeyName"            : "Secure",
+        "NetworkInterfaces" : [{
+          "AssociatePublicIpAddress" : "true",
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId" : { "Ref" : "pubSubnet" },
+          "GroupSet"                 : [ "sg-a1b2c3d4" ]
+        }]
+      }
+    },
+	 "APIapp1": {
+      "Type": "AWS::EC2::Instance",  
+      "Properties": {
+        "Tags" : [
+            { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } }
+        ],
+        "ImageId"            : "ami-123456789",
+        "InstanceType"       : "m1.small",
+        "IamInstanceProfile" : { "Ref" : "InstanceProfile" },
+        "KeyName"            : "Secure",
+        "NetworkInterfaces" : [{
+          "AssociatePublicIpAddress" : "true",
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId" : { "Ref" : "pubSubnet" },
+          "GroupSet"                 : [ "sg-a1b2c3d5" ]
+        }]
+      }
+    },
+	 "APIapp2": {
+      "Type": "AWS::EC2::Instance",  
+      "Properties": {
+        "Tags" : [
+            { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } }
+        ],
+        "ImageId"            : "ami-123456789",
+        "InstanceType"       : "m1.small",
+        "IamInstanceProfile" : { "Ref" : "InstanceProfile" },
+        "KeyName"            : "Secure",
+        "NetworkInterfaces" : [{
+          "AssociatePublicIpAddress" : "true",
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId" : { "Ref" : "pubSubnet" },
+          "GroupSet"                 : [ "sg-a1b2c3d5" ]
+        }]
+      }
+    },
+   }
+}    
