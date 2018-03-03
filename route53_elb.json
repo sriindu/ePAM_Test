@@ -1,0 +1,52 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "AWS CloudFormation Template Srikanth ",
+
+  "Parameters" : {
+
+    "InstanceType" : {
+      "Description" : "Web App EC2 instance type",
+      "Type" : "String",
+      "Default" : "m1.small",
+      "AllowedValues" : [ "t1.micro","m1.small","m1.medium","m1.large","m1.xlarge","m2.xlarge","m2.2xlarge","m2.4xlarge","m3.xlarge","m3.2xlarge","c1.medium","c1.xlarge","cc1.4xlarge","cc2.8xlarge","cg1.4xlarge"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "Resources" : {
+       "myELB" : {
+        "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+        "Properties" : {
+            "AvailabilityZones" : [ "us-east-1a" ],
+            "Listeners" : [ {
+                "LoadBalancerPort" : "80",
+                "InstancePort" : "80",
+                "Protocol" : "HTTP"
+            } ]
+        }
+      },
+      "myDNS" : {
+        "Type" : "AWS::Route53::RecordSetGroup",
+        "Properties" : {
+          "HostedZoneName" : "mytest-sri.com.",
+          "Comment" : "Zone apex alias targeted to myELB LoadBalancer.",
+          "RecordSets" : [
+            {
+              "Name" : "mytest-sri.com.",
+              "Type" : "A",
+              "AliasTarget" : {
+                  "HostedZoneId" : { "Fn::GetAtt" : ["myELB", "CanonicalHostedZoneNameID"] },
+                  "DNSName" : { "Fn::GetAtt" : ["myELB","DNSName"] },
+           {
+             "Name" : "mysite.example.com.",
+             "Type" : "CNAME",
+             "TTL" : "900",
+             "SetIdentifier" : "Frontend One",
+             "Weight" : "4",
+             "ResourceRecords" : ["mytest-sri.com"]
+                  },   
+              }
+            }
+          ]
+        }
+    }
